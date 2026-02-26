@@ -13,7 +13,6 @@ Usage:
 import json
 import os
 import re
-import sys
 from datetime import datetime, timezone
 from pathlib import Path
 
@@ -28,7 +27,8 @@ ROOT = Path(__file__).parent.parent
 NOTES_DIR = ROOT / "notes"
 ENTRIES_PATH = ROOT / "knowledge-hub" / "src" / "Data" / "entries.json"
 
-client = anthropic.Anthropic(api_key=os.environ["ANTHROPIC_API_KEY"])
+# Use stripped API key to avoid whitespace issues
+client = anthropic.Anthropic(api_key=os.environ["ANTHROPIC_API_KEY"].strip())
 
 
 def slugify(name: str) -> str:
@@ -47,10 +47,9 @@ def generate_metadata(title: str, type_: str, body: str) -> dict:
     response = client.messages.create(
         model="claude-haiku-4-5-20251001",
         max_tokens=512,
-        messages=[
-            {
-                "role": "user",
-                "content": f"""You are indexing a personal knowledge base note. Generate metadata for it.
+        messages=[{
+            "role": "user",
+            "content": f"""You are indexing a personal knowledge base note. Generate metadata for it.
 
 Title: {title}
 Type: {type_}
@@ -63,10 +62,16 @@ Return a JSON object with exactly two fields:
 - "summary": a 2-3 sentence summary of the key ideas
 
 Return only the raw JSON object, no markdown fences, no extra text.""",
-            }
-        ],
+        }]
     )
-    return json.loads(response.content[0].text.strip())
+    raw = response.content[0].text.strip()
+
+    # Remove ```json and ``` fences if present
+    raw = re.sub(r"^```json", "", raw)
+    raw = re.sub(r"```$", "", raw)
+    raw = raw.strip()
+
+    return json.loads(raw)
 
 
 def main():
@@ -82,6 +87,7 @@ def main():
 
     print(f"Processing {len(changed_files)} file(s): {', '.join(changed_files)}")
 
+    # Load existing entries.json
     try:
         entries: list[dict] = json.loads(ENTRIES_PATH.read_text())
     except (FileNotFoundError, json.JSONDecodeError):
@@ -112,19 +118,24 @@ def main():
         tags = fm.get("tags") or None
         summary = (fm.get("summary") or "").strip() or None
 
+        # Generate metadata if missing
         if not tags or not summary:
             print(f'  Calling Claude for metadata on "{fm["title"]}"...', end=" ", flush=True)
             try:
                 meta = generate_metadata(fm["title"], type_, body)
-                tags = tags or meta["tags"]
-                summary = summary or meta["summary"]
+                tags = tags or meta.get("tags", [])
+                summary = summary or meta.get("summary", "")
                 print("done")
             except Exception as e:
                 print(f"failed: {e}")
-                continue
+                # Fail gracefully: still add the note with empty tags/summary
+                tags = tags or []
+                summary = summary or ""
+
         else:
             print(f'  Using existing metadata for "{fm["title"]}"')
 
+        # Build entry
         entry = {
             "entryId": entry_id,
             "type": type_,
@@ -138,6 +149,7 @@ def main():
             "updatedAt": now,
         }
 
+        # Update or append
         idx = next((i for i, e in enumerate(entries) if e["entryId"] == entry_id), -1)
         if idx >= 0:
             entries[idx] = entry
@@ -149,6 +161,7 @@ def main():
     # Sort newest first
     entries.sort(key=lambda e: e["updatedAt"], reverse=True)
 
+    # Save back to entries.json
     ENTRIES_PATH.write_text(json.dumps(entries, indent=2) + "\n")
     print(f"\nProcessed {processed} note(s). {len(entries)} total entries in {ENTRIES_PATH}")
 
