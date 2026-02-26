@@ -59,7 +59,7 @@ Content:
 
 Return a JSON object with exactly two fields:
 - "tags": array of 3-6 lowercase kebab-case strings (e.g. "distributed-systems", "caching")
-- "summary": a 2-3 sentence summary of the key ideas
+- "summary": a 2-3 sentence summary of the key ideas. Keep it short and brief, maximum 50 words.
 
 Return only the raw JSON object, no markdown fences, no extra text.""",
         }]
