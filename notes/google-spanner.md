@@ -6,7 +6,7 @@ sourceUrl: "https://research.google/pubs/pub39966/"
 
 ## Overview
 
-The Google Spanner is a globally distributed relational database that provides **external consistency** — a stronger guarantee than serialisability. It's the first system to distribute data globally while supporting general-purpose transactions and SQL queries.
+Google Spanner is a globally distributed relational database that provides **external consistency** — a stronger guarantee than serialisability. It's the first system to distribute data globally while supporting general-purpose transactions and SQL queries.
 
 ## TrueTime API
 
