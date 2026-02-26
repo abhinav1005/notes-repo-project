@@ -4,7 +4,7 @@ on:
   push:
     branches: [main]
     paths:
-      - "notes/**/*.md"
+      - "notes/*.md" # only markdown files in /notes/, no subfolders
 
 jobs:
   process:
@@ -16,7 +16,7 @@ jobs:
       - name: Checkout repo
         uses: actions/checkout@v4
         with:
-          fetch-depth: 2
+          fetch-depth: 0 # ensures diffs work reliably
 
       - name: Setup Python
         uses: actions/setup-python@v5
@@ -31,11 +31,12 @@ jobs:
       - name: Get changed markdown files
         id: changed-files
         run: |
-          CHANGED=$(git diff --name-only HEAD~1 HEAD -- 'notes/*.md' | tr '\n' ' ')
-          echo "files=$CHANGED" >> $GITHUB_OUTPUT
-          echo "Changed files: $CHANGED"
+          git diff --name-only ${{ github.event.before }} ${{ github.sha }} -- 'notes/*.md' | tr '\n' ' ' > files.txt
+          echo "files=$(cat files.txt)" >> $GITHUB_OUTPUT
+          echo "Changed files: $(cat files.txt)"
 
       - name: Process notes
+        if: steps.changed-files.outputs.files != ''
         env:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
           CHANGED_FILES: ${{ steps.changed-files.outputs.files }}
