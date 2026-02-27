@@ -1,4 +1,5 @@
-import { useState, useMemo } from "react"
+import { useState, useMemo, useEffect, useRef } from "react"
+import { useNavigate } from "react-router-dom"
 import entries from "../Data/entries.json"
 import EntryCard from "../components/EntryCard"
 import type { Entry } from "../types/entry"
@@ -8,11 +9,16 @@ type TypeFilter = typeof ALL_TYPES[number]
 
 const PAGE_SIZE = 12
 
-export default function Home() {
+type Props = { isSearchOpen: boolean }
+
+export default function Home({ isSearchOpen }: Props) {
   const typedEntries = entries as Entry[]
+  const navigate = useNavigate()
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid')
   const [activeType, setActiveType] = useState<TypeFilter>('all')
   const [visibleCount, setVisibleCount] = useState(PAGE_SIZE)
+  const [focusedIndex, setFocusedIndex] = useState(-1)
+  const gridRef = useRef<HTMLDivElement>(null)
 
   const filtered = useMemo(() => {
     if (activeType === 'all') return typedEntries
@@ -25,7 +31,61 @@ export default function Home() {
   function handleTypeChange(type: TypeFilter) {
     setActiveType(type)
     setVisibleCount(PAGE_SIZE)
+    setFocusedIndex(-1)
   }
+
+  // Arrow key + Enter keyboard navigation
+  useEffect(() => {
+    function getColCount(): number {
+      if (viewMode === 'list' || !gridRef.current) return 1
+      const cols = getComputedStyle(gridRef.current).gridTemplateColumns
+      return cols.split(' ').filter(Boolean).length
+    }
+
+    function handle(e: KeyboardEvent) {
+      if (isSearchOpen) return
+      const inInput = ['INPUT', 'TEXTAREA'].includes((e.target as HTMLElement).tagName)
+      if (inInput) return
+
+      const cols = getColCount()
+      const last = visible.length - 1
+
+      if (e.key === 'ArrowRight' && viewMode === 'grid') {
+        e.preventDefault()
+        setFocusedIndex(i => i < 0 ? 0 : Math.min(i + 1, last))
+      }
+      if (e.key === 'ArrowLeft' && viewMode === 'grid') {
+        e.preventDefault()
+        setFocusedIndex(i => Math.max(i - 1, 0))
+      }
+      if (e.key === 'ArrowDown') {
+        e.preventDefault()
+        setFocusedIndex(i => {
+          if (i < 0) return 0
+          return Math.min(i + cols, last)
+        })
+      }
+      if (e.key === 'ArrowUp') {
+        e.preventDefault()
+        setFocusedIndex(i => Math.max(i - cols, 0))
+      }
+      if (e.key === 'Enter' && focusedIndex >= 0 && visible[focusedIndex]) {
+        navigate(`/entry/${visible[focusedIndex].entryId}`)
+      }
+    }
+    window.addEventListener('keydown', handle)
+    return () => window.removeEventListener('keydown', handle)
+  }, [isSearchOpen, focusedIndex, visible, viewMode, navigate])
+
+  // Reset focus when filter changes
+  useEffect(() => { setFocusedIndex(-1) }, [activeType])
+
+  // Scroll focused card into view
+  useEffect(() => {
+    if (focusedIndex < 0) return
+    const el = gridRef.current?.children[focusedIndex] as HTMLElement | undefined
+    el?.scrollIntoView({ behavior: 'smooth', block: 'nearest' })
+  }, [focusedIndex])
 
   return (
     <div className="max-w-6xl mx-auto w-full py-8 px-4 md:px-6">
@@ -89,23 +149,43 @@ export default function Home() {
         </div>
       </div>
 
-      {/* Count */}
-      <p className="text-slate-600 text-xs mb-5">
-        {filtered.length === 0 ? 'No entries' : `${visible.length} of ${filtered.length} entries`}
-      </p>
+      {/* Count + shortcut hint */}
+      <div className="flex items-center justify-between mb-5">
+        <p className="text-slate-600 text-xs">
+          {filtered.length === 0 ? 'No entries' : `${visible.length} of ${filtered.length} entries`}
+        </p>
+        {focusedIndex >= 0 && (
+          <p className="text-slate-600 text-xs font-mono">
+            {focusedIndex + 1} / {visible.length} &nbsp;↵ open
+          </p>
+        )}
+      </div>
 
       {/* Cards */}
       {filtered.length === 0 ? (
         <p className="text-slate-500 text-sm">No entries of this type yet.</p>
       ) : (
         <>
-          <div className={
-            viewMode === 'grid'
-              ? 'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4'
-              : 'flex flex-col gap-3'
-          }>
-            {visible.map(entry => (
-              <EntryCard key={entry.entryId} entry={entry} viewMode={viewMode} />
+          <div
+            ref={gridRef}
+            className={
+              viewMode === 'grid'
+                ? 'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4'
+                : 'flex flex-col gap-3'
+            }
+          >
+            {visible.map((entry, i) => (
+              <div
+                key={entry.entryId}
+                className={`rounded-xl transition-all duration-150 ${
+                  focusedIndex === i
+                    ? 'ring-2 ring-blue-500/60 ring-offset-2 ring-offset-[#0d1117]'
+                    : ''
+                }`}
+                onMouseEnter={() => setFocusedIndex(i)}
+              >
+                <EntryCard entry={entry} viewMode={viewMode} />
+              </div>
             ))}
           </div>
 
@@ -123,6 +203,13 @@ export default function Home() {
           )}
         </>
       )}
+
+      {/* Keyboard hint */}
+      <p className="text-slate-700 text-xs text-center mt-10">
+        <kbd className="font-mono">↑↓←→</kbd> to navigate &nbsp;·&nbsp;
+        <kbd className="font-mono">⌘K</kbd> to search &nbsp;·&nbsp;
+        <kbd className="font-mono">?</kbd> for shortcuts
+      </p>
     </div>
   )
 }
