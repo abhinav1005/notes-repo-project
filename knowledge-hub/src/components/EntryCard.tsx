@@ -14,35 +14,47 @@ function formatDate(iso: string) {
   })
 }
 
+const TYPE_COLORS: Record<string, string> = {
+  note:       'text-blue-400',
+  paper:      'text-violet-400',
+  blog:       'text-emerald-400',
+  discussion: 'text-amber-400',
+  resource:   'text-rose-400',
+}
+
 export default function EntryCard({ entry, viewMode = 'grid' }: Props) {
+  const typeColor = TYPE_COLORS[entry.type] ?? 'text-slate-400'
+
   if (viewMode === 'list') {
     return (
       <Link to={`/entry/${entry.entryId}`} className="block">
-        <div className="bg-black/60 rounded-xl shadow border border-gray-700 hover:border-gray-500 p-4 transition flex items-start gap-4">
-          <div className="flex-1 min-w-0">
-            <div className="flex items-center gap-3 mb-1 flex-wrap">
-              <span className="text-xs text-blue-500 uppercase font-medium tracking-wide">
-                {entry.type}
-              </span>
-              <h2 className="text-base font-semibold text-white leading-snug">
-                {entry.title}
-              </h2>
-            </div>
-            <p className="text-gray-400 text-sm mb-3 leading-relaxed">
-              {entry.summary}
-            </p>
-            <div className="flex items-center justify-between gap-2 flex-wrap">
-              <div className="flex flex-wrap gap-2">
-                {entry.tags.map(tag => (
-                  <span key={tag} className="text-xs bg-gray-700 text-gray-300 px-2 py-0.5 rounded">
-                    #{tag}
-                  </span>
-                ))}
+        <div className="bg-slate-800/60 backdrop-blur-sm rounded-xl border border-slate-700/60
+                        hover:border-slate-500/80 hover:bg-slate-800/80 p-4 transition-all duration-200">
+          <div className="flex items-start justify-between gap-4">
+            <div className="flex-1 min-w-0">
+              <div className="flex items-center gap-2 mb-1.5">
+                <span className={`text-xs font-semibold uppercase tracking-wider ${typeColor}`}>
+                  {entry.type}
+                </span>
+                {entry.sourceUrl && (
+                  <svg xmlns="http://www.w3.org/2000/svg" width="11" height="11" viewBox="0 0 24 24"
+                    fill="none" stroke="currentColor" strokeWidth="2" className="text-slate-500">
+                    <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/>
+                    <polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/>
+                  </svg>
+                )}
               </div>
-              <span className="text-xs text-gray-600 shrink-0">
-                {formatDate(entry.createdAt)}
-              </span>
+              <h2 className="text-white font-semibold text-sm leading-snug mb-1.5">{entry.title}</h2>
+              <p className="text-slate-300 text-xs leading-relaxed line-clamp-2">{entry.summary}</p>
             </div>
+            <span className="text-slate-400 text-xs shrink-0 pt-0.5">{formatDate(entry.createdAt)}</span>
+          </div>
+          <div className="flex flex-wrap gap-1.5 mt-3">
+            {entry.tags.map(tag => (
+              <span key={tag} className="text-xs bg-slate-700/80 text-slate-300 px-2 py-0.5 rounded-md">
+                #{tag}
+              </span>
+            ))}
           </div>
         </div>
       </Link>
@@ -51,20 +63,29 @@ export default function EntryCard({ entry, viewMode = 'grid' }: Props) {
 
   return (
     <Link to={`/entry/${entry.entryId}`} className="block h-full">
-      <div className="bg-black/60 rounded-xl border border-gray-700 hover:border-gray-500 shadow p-4 transition h-full flex flex-col gap-2">
+      <div className="bg-slate-800/60 backdrop-blur-sm rounded-xl border border-slate-700/60
+                      hover:border-slate-500/80 hover:bg-slate-800/80 p-4 transition-all duration-200
+                      h-full flex flex-col gap-2">
         <div className="flex items-center justify-between">
-          <span className="text-xs text-blue-500 uppercase font-medium tracking-wide">
-            {entry.type}
-          </span>
-          <span className="text-xs text-gray-600">
-            {formatDate(entry.createdAt)}
-          </span>
+          <div className="flex items-center gap-1.5">
+            <span className={`text-xs font-semibold uppercase tracking-wider ${typeColor}`}>
+              {entry.type}
+            </span>
+            {entry.sourceUrl && (
+              <svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24"
+                fill="none" stroke="currentColor" strokeWidth="2" className="text-slate-600">
+                <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/>
+                <polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/>
+              </svg>
+            )}
+          </div>
+          <span className="text-slate-400 text-xs">{formatDate(entry.createdAt)}</span>
         </div>
-        <h2 className="text-base font-semibold text-white leading-snug">{entry.title}</h2>
-        <p className="text-gray-400 text-sm flex-1 leading-relaxed">{entry.summary}</p>
+        <h2 className="text-white font-semibold text-sm leading-snug">{entry.title}</h2>
+        <p className="text-slate-300 text-xs leading-relaxed flex-1 line-clamp-3">{entry.summary}</p>
         <div className="flex flex-wrap gap-1.5 pt-1">
           {entry.tags.map(tag => (
-            <span key={tag} className="text-xs bg-gray-700 text-gray-300 px-2 py-0.5 rounded">
+            <span key={tag} className="text-xs bg-slate-700/80 text-slate-300 px-2 py-0.5 rounded-md">
               #{tag}
             </span>
           ))}
