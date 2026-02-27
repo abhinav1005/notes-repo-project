@@ -87,9 +87,15 @@ def main():
 
     print(f"Processing {len(changed_files)} file(s): {', '.join(changed_files)}")
 
-    # Load existing entries.json
+    # Load existing entries.json and deduplicate by entryId (keep first = newest after sort)
     try:
-        entries: list[dict] = json.loads(ENTRIES_PATH.read_text())
+        raw: list[dict] = json.loads(ENTRIES_PATH.read_text())
+        seen: set[str] = set()
+        entries: list[dict] = []
+        for e in raw:
+            if e["entryId"] not in seen:
+                seen.add(e["entryId"])
+                entries.append(e)
     except (FileNotFoundError, json.JSONDecodeError):
         entries = []
 

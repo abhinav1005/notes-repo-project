@@ -19,6 +19,7 @@ export default function Home({ isSearchOpen }: Props) {
   const [visibleCount, setVisibleCount] = useState(PAGE_SIZE)
   const [focusedIndex, setFocusedIndex] = useState(-1)
   const gridRef = useRef<HTMLDivElement>(null)
+  const keyboardNav = useRef(false)
 
   const filtered = useMemo(() => {
     if (activeType === 'all') return typedEntries
@@ -52,14 +53,17 @@ export default function Home({ isSearchOpen }: Props) {
 
       if (e.key === 'ArrowRight' && viewMode === 'grid') {
         e.preventDefault()
+        keyboardNav.current = true
         setFocusedIndex(i => i < 0 ? 0 : Math.min(i + 1, last))
       }
       if (e.key === 'ArrowLeft' && viewMode === 'grid') {
         e.preventDefault()
+        keyboardNav.current = true
         setFocusedIndex(i => Math.max(i - 1, 0))
       }
       if (e.key === 'ArrowDown') {
         e.preventDefault()
+        keyboardNav.current = true
         setFocusedIndex(i => {
           if (i < 0) return 0
           return Math.min(i + cols, last)
@@ -67,6 +71,7 @@ export default function Home({ isSearchOpen }: Props) {
       }
       if (e.key === 'ArrowUp') {
         e.preventDefault()
+        keyboardNav.current = true
         setFocusedIndex(i => Math.max(i - cols, 0))
       }
       if (e.key === 'Enter' && focusedIndex >= 0 && visible[focusedIndex]) {
@@ -80,9 +85,10 @@ export default function Home({ isSearchOpen }: Props) {
   // Reset focus when filter changes
   useEffect(() => { setFocusedIndex(-1) }, [activeType])
 
-  // Scroll focused card into view
+  // Scroll focused card into view — only for keyboard navigation, not mouse hover
   useEffect(() => {
-    if (focusedIndex < 0) return
+    if (focusedIndex < 0 || !keyboardNav.current) return
+    keyboardNav.current = false
     const el = gridRef.current?.children[focusedIndex] as HTMLElement | undefined
     el?.scrollIntoView({ behavior: 'smooth', block: 'nearest' })
   }, [focusedIndex])
@@ -167,6 +173,7 @@ export default function Home({ isSearchOpen }: Props) {
       ) : (
         <>
           <div
+            key={activeType}
             ref={gridRef}
             className={
               viewMode === 'grid'
@@ -176,13 +183,12 @@ export default function Home({ isSearchOpen }: Props) {
           >
             {visible.map((entry, i) => (
               <div
-                key={entry.entryId}
+                key={`${entry.entryId}-${i}`}
                 className={`rounded-xl transition-all duration-150 ${
                   focusedIndex === i
                     ? 'ring-2 ring-blue-500/60 ring-offset-2 ring-offset-[#0d1117]'
                     : ''
                 }`}
-                onMouseEnter={() => setFocusedIndex(i)}
               >
                 <EntryCard entry={entry} viewMode={viewMode} />
               </div>
