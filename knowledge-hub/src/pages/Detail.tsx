@@ -216,6 +216,13 @@ export default function Detail() {
                 )
               },
               hr: () => <hr className="border-slate-800 my-6" />,
+              img: ({ src, alt }) => (
+                <img
+                  src={src}
+                  alt={alt ?? ''}
+                  className="rounded-lg max-w-full my-4 border border-slate-700/60"
+                />
+              ),
             }}
           >
             {entry.content}

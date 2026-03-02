@@ -4,7 +4,8 @@ on:
   push:
     branches: [main]
     paths:
-      - "notes/*.md" # only markdown files in /notes/, no subfolders
+      - "notes/*.md"
+      - "notes/images/**"
 
 jobs:
   process:
@@ -35,6 +36,13 @@ jobs:
           echo "files=$(cat files.txt)" >> $GITHUB_OUTPUT
           echo "Changed files: $(cat files.txt)"
 
+      - name: Copy images to public/
+        run: |
+          if [ -d "notes/images" ]; then
+            mkdir -p knowledge-hub/public/images
+            cp -r notes/images/. knowledge-hub/public/images/
+          fi
+
       - name: Process notes
         if: steps.changed-files.outputs.files != ''
         env:
@@ -46,6 +54,6 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add knowledge-hub/src/Data/entries.json
+          git add knowledge-hub/src/Data/entries.json knowledge-hub/public/images/
           git diff --staged --quiet || git commit -m "chore: process notes [skip ci]"
           git push

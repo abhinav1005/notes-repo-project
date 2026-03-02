@@ -26,6 +26,7 @@ load_dotenv(Path(__file__).parent.parent / ".env")
 ROOT = Path(__file__).parent.parent
 NOTES_DIR = ROOT / "notes"
 ENTRIES_PATH = ROOT / "knowledge-hub" / "src" / "Data" / "entries.json"
+PUBLIC_IMAGES = ROOT / "knowledge-hub" / "public" / "images"
 
 # Use stripped API key to avoid whitespace issues
 client = anthropic.Anthropic(api_key=os.environ["ANTHROPIC_API_KEY"].strip())
@@ -163,6 +164,20 @@ def main():
             entries.append(entry)
 
         processed += 1
+
+    # Rewrite relative image paths to absolute /images/name.ext
+    # (images are copied to public/images/ by the workflow step)
+    for entry in entries:
+        entry["content"] = re.sub(
+            r'!\[([^\]]*)\]\(\./images/([^)]+)\)',
+            r'![\1](/images/\2)',
+            entry["content"]
+        )
+        entry["content"] = re.sub(
+            r'!\[([^\]]*)\]\(images/([^)]+)\)',
+            r'![\1](/images/\2)',
+            entry["content"]
+        )
 
     # Sort newest first
     entries.sort(key=lambda e: e["updatedAt"], reverse=True)
