@@ -69,6 +69,21 @@ def fix_image_paths(content: str) -> str:
     return re.sub(r'!\[([^\]]*)\]\(([^)]+)\)', replace, content)
 
 
+def deindent_images(content: str) -> str:
+    """
+    Notion nests images inside deeply-indented list items (4+ spaces).
+    CommonMark treats 4+ spaces of indentation as a code block, which
+    causes react-markdown to render the raw ![...]() syntax as text.
+    Strip leading whitespace from lines that contain only an image reference.
+    """
+    return re.sub(
+        r'^[ \t]+(!\[[^\]]*\]\([^)]+\))[ \t]*$',
+        r'\1',
+        content,
+        flags=re.MULTILINE
+    )
+
+
 def build_frontmatter(title: str) -> str:
     # Escape double-quotes inside the title
     safe = title.replace('"', '\\"')
@@ -85,8 +100,9 @@ def import_md(md_path: Path) -> None:
     slug    = slugify(md_path.stem)
     title, body = extract_title(raw, slug)
 
-    # Fix image paths in body
+    # Fix image paths and de-indent image-only lines
     body = fix_image_paths(body)
+    body = deindent_images(body)
 
     # Copy images from the sibling Notion image folder.
     # Notion names the folder WITHOUT the UUID, but the .md file has it.

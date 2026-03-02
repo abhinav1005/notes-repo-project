@@ -62,7 +62,7 @@ HTTP:
     - client server needs to establish a connection for this request and response transfer. They use TCP for it. Transmission control protocol
         - TCP is more reliable and has a three-way handshake
             
-            ![Screenshot 2026-03-01 at 10.48.54 PM.png](./images/Screenshot_2026-03-01_at_10.48.54_PM.png)
+![Screenshot 2026-03-01 at 10.48.54 PM.png](./images/Screenshot_2026-03-01_at_10.48.54_PM.png)
             
     
     HTTP Messages
@@ -70,13 +70,13 @@ HTTP:
     - Request
         - 
             
-            ![Screenshot 2026-03-01 at 10.52.37 PM.png](./images/Screenshot_2026-03-01_at_10.52.37_PM.png)
+![Screenshot 2026-03-01 at 10.52.37 PM.png](./images/Screenshot_2026-03-01_at_10.52.37_PM.png)
             
     - 
 - Response
     - 
         
-        ![Screenshot 2026-03-01 at 10.52.56 PM.png](./images/Screenshot_2026-03-01_at_10.52.56_PM.png)
+![Screenshot 2026-03-01 at 10.52.56 PM.png](./images/Screenshot_2026-03-01_at_10.52.56_PM.png)
         
 
 HTTP Headers
