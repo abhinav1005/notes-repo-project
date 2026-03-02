@@ -8,6 +8,7 @@ A personal knowledge management system. Write Markdown notes locally, push to Gi
 
 ```
 Write .md file → push to main → GitHub Actions triggers
+    → images copied to public/images/
     → Claude generates tags + summary
     → entries.json committed back [skip ci]
     → Vercel detects commit → rebuilds → live site updated
@@ -25,7 +26,7 @@ Everything is static at runtime. No database, no runtime API calls — the pipel
 | Styling | Tailwind CSS v4 |
 | Routing | React Router v7 |
 | Markdown | react-markdown + remark-gfm |
-| Diagrams | Mermaid |
+| Diagrams | Mermaid (inline code blocks) |
 | Pipeline | GitHub Actions + Python |
 | AI | Claude Haiku (`claude-haiku-4-5-20251001`) |
 | Deployment | Vercel |
@@ -77,6 +78,58 @@ graph TD
 
 ---
 
+## Images in Notes
+
+Put images in `notes/images/` and reference them with a relative path:
+
+```markdown
+![My diagram](./images/my-diagram.png)
+```
+
+Push both the `.md` and the image file. The pipeline copies images to `public/images/` and rewrites paths automatically — no manual URL editing needed.
+
+**Alternatives:**
+- External URLs work directly: `![](https://i.imgur.com/abc.png)`
+- GitHub CDN: paste a screenshot into any GitHub issue comment box, copy the URL it generates, use that in your markdown
+
+---
+
+## Importing from Notion
+
+Export a page from Notion as **Markdown & CSV**, then run:
+
+```bash
+python backend/import_notion.py ~/Downloads/export.zip
+# or point at an extracted folder or single .md file
+python backend/import_notion.py ~/Downloads/extracted-folder/
+python backend/import_notion.py ~/Downloads/my-note.md
+```
+
+The script handles everything automatically:
+- Strips Notion's UUID suffix from filenames
+- Extracts the title from the first `# heading` and writes it as frontmatter
+- Decodes URL-encoded image paths (`Backend%20notes/img.png` → `./images/img.png`)
+- Fixes deeply-indented image lines that Notion embeds inside bullet points
+- Copies images to `notes/images/`
+
+Review the output in `notes/`, then push normally.
+
+---
+
+## Deleting a Note
+
+```bash
+python backend/delete_note.py my-note
+# or
+python backend/delete_note.py my-note.md
+```
+
+Deletes the `.md`, removes exclusively-used images from `notes/images/` and `public/images/`, and removes the entry from `entries.json`. Push to update the live site.
+
+Images referenced by other notes are left untouched.
+
+---
+
 ## Entry Schema
 
 The pipeline produces `entries.json` with this shape:
@@ -113,15 +166,15 @@ type Entry = {
 
 | Key | Action |
 |---|---|
-| `⌘K` / `Ctrl+K` | Open search modal |
+| `⌘K` / `Ctrl+K` | Open search modal (searches all entries) |
 | `/` | Open search modal |
-| `↑` `↓` | Move up/down (grid rows, list items) |
-| `←` `→` | Move left/right (grid columns only) |
+| `↑` `↓` | Move up/down rows (grid and list) |
+| `←` `→` | Move left/right columns (grid only) |
 | `↵` | Open focused entry |
 | `Esc` | Close modal / go back |
 | `?` | Show shortcuts reference |
 
-The search modal searches all entries, not just the ones currently visible.
+Arrow key navigation shows a blue focus ring on the selected card and scrolls it into view automatically.
 
 ---
 
@@ -166,7 +219,7 @@ uvicorn main:app --reload   # http://localhost:8000
 
 ### GitHub Actions
 
-The workflow (`.github/workflows/process-notes.yml`) runs automatically when any `notes/*.md` file is pushed to `main`.
+The workflow (`.github/workflows/process-notes.yml`) triggers automatically when `notes/*.md` or `notes/images/**` files are pushed to `main`.
 
 Required secret → **Settings → Secrets → Actions**:
 
@@ -180,7 +233,7 @@ ANTHROPIC_API_KEY   sk-ant-...
 2. Set root directory to `knowledge-hub/`
 3. No additional environment variables needed (the pipeline runs in Actions, not Vercel)
 
-`vercel.json` already configures the SPA rewrite so React Router routes work in production.
+`vercel.json` configures SPA routing so React Router routes work in production.
 
 ---
 
@@ -189,15 +242,21 @@ ANTHROPIC_API_KEY   sk-ant-...
 ```
 notes_repo/
 ├── notes/                          # Write your .md notes here
-│   └── my-note.md
+│   ├── my-note.md
+│   └── images/                     # Drop images here — pipeline handles the rest
+│       └── my-diagram.png
 ├── backend/
 │   ├── process_notes.py            # Pipeline: parses MD, calls Claude, writes JSON
+│   ├── import_notion.py            # Import Notion exports (zip, folder, or .md)
+│   ├── delete_note.py              # Delete a note and its exclusive images
 │   ├── main.py                     # FastAPI app (future RAG)
 │   ├── routers/ask.py              # /api/ask stub
 │   └── requirements.txt
 ├── .github/workflows/
 │   └── process-notes.yml           # CI pipeline
 ├── knowledge-hub/                  # React app
+│   ├── public/
+│   │   └── images/                 # Pipeline copies notes/images/ here
 │   ├── src/
 │   │   ├── App.tsx                 # Router + global keyboard shortcuts
 │   │   ├── types/entry.ts          # Shared Entry type
@@ -222,6 +281,7 @@ notes_repo/
 ## Roadmap
 
 - [ ] RAG `/ask` page — embed notes with Voyage AI, query with cosine similarity, answer with Claude
+- [ ] Browser extension — one-click save of blog/article URLs to the reading list
 - [ ] Note graph visualization — force-directed graph of entries connected by shared tags
 - [ ] `[[wiki-links]]` — cross-reference notes in Markdown, resolved by pipeline
 - [ ] Lazy-load Detail page — reduce initial bundle size (Mermaid is ~900KB)
