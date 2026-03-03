@@ -1,5 +1,23 @@
 [
   {
+    "entryId": "http-response-status-codes",
+    "type": "note",
+    "title": "HTTP Response Status Codes",
+    "tags": [
+      "http",
+      "web-development",
+      "status-codes",
+      "api-design",
+      "error-handling"
+    ],
+    "summary": "HTTP status codes standardize how servers communicate request outcomes to clients. They're organized into five categories (1xx\u20135xx) that indicate information, success, redirection, client errors, or server errors, enabling consistent error handling across platforms.",
+    "content": "Exist to communicate the result of a request in a standardized way.\n\n- Helps the client understand whether a request succeeded.\n- Helps the client handle errors, because each status code maps to a specific category.\n    - Authorization error\n    - Bad request error\n    - And so on\n- Standardization enables consistent behavior across clients, languages, and frameworks.\n\n---\n\n### Types of status codes\n\n#### 1xx \u2014 Informational\n\n- **Range:** 100\u2013199\n- **Meaning:** The server has received the request headers and the client can continue.\n- **Common use cases:**\n    - Large uploads where the client sends headers first, then the body.\n    - Switching protocols.\n\n#### 2xx \u2014 Success\n\n- **Range:** 200\u2013299\n- **Meaning:** The request was received, understood, and successfully processed.\n- **200 OK**\n    - The request succeeded.\n    - The server is returning the requested resource, or confirming the requested operation.\n- **201 Created**\n    - The request succeeded and created a new resource.\n    - Common with `POST` requests.\n- **204 No Content**\n    - The request succeeded, but there is no response body.\n    - Common with `OPTIONS` preflight responses.\n\n#### 3xx \u2014 Redirection\n\n- **Range:** 300\u2013399\n- **Meaning:** The client needs to take additional action to complete the request.\n- **301 Moved Permanently**\n    - The resource has moved permanently to a new URL.\n    - The client should use the new URL going forward.\n- **302 Found (Temporary Redirect)**\n    - The resource is temporarily at a different URL.\n    - The client should keep using the original URL for future requests.\n- **304 Not Modified**\n    - The resource has not changed since the last request.\n    - Used for efficient caching, typically with `GET` requests.\n\n#### 4xx \u2014 Client Error\n\n- **Range:** 400\u2013499\n- **Meaning:** The request cannot be fulfilled because of an issue with the client\u2019s request.\n- **400 Bad Request**\n    - The client sent invalid, illogical, or incorrectly formatted data.\n    - Example: Server expects a number but the client sends an array.\n- **401 Unauthorized**\n    - Authentication is required and is missing or invalid.\n    - Example: Missing token, or an expired JWT.\n- **403 Forbidden**\n    - The server understood the request, but refuses to authorize it.\n    - Can happen even when the client is authenticated.\n        - Example: The user is signed in but lacks required permissions.\n- **404 Not Found**\n    - The requested resource does not exist.\n    - Example: Incorrect URL, or the resource was deleted.\n- **405 Method Not Allowed**\n    - The HTTP method is not supported for this endpoint.\n    - Example: `PUT` to an endpoint that only supports `GET` or `POST`.\n- **409 Conflict**\n    - The request conflicts with the current state of the server.\n    - Example: Creating a folder with a name that must be unique, but it already exists.\n- **429 Too Many Requests**\n    - The client has sent too many requests in a given amount of time.\n    - Commonly used for rate limiting.\n\n#### 5xx \u2014 Server Error\n\n- **Range:** 500\u2013599\n- **Meaning:** The server failed to fulfill an apparently valid request.\n- **500 Internal Server Error**\n    - An unexpected condition occurred on the server.\n    - Example: An unhandled exception.\n- **501 Not Implemented**\n    - The server does not support the requested functionality.\n    - May be implemented in the future.\n- **502 Bad Gateway**\n    - A proxy or gateway received an invalid response from an upstream server.\n    - Common with reverse proxies like NGINX.\n- **503 Service Unavailable**\n    - The server is down, overloaded, or in maintenance mode.\n- **504 Gateway Timeout**\n    - A proxy or gateway did not receive a response from the upstream server in time.\n    - Example: NGINX timed out waiting for the origin server.",
+    "sourceUrl": "",
+    "sourceFile": "notes/http-response-status-codes.md",
+    "createdAt": "2026-03-03T02:58:54.434625+00:00",
+    "updatedAt": "2026-03-03T02:58:54.434625+00:00"
+  },
+  {
     "entryId": "cors",
     "type": "note",
     "title": "CORS",
