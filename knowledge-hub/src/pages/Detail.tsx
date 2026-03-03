@@ -170,6 +170,9 @@ export default function Detail() {
                 const id = slugify(childText(children))
                 return <h3 id={id} className="text-base font-medium text-slate-200 mt-5 mb-2">{children}</h3>
               },
+              h4: ({ children }) => <h4 className="text-sm font-semibold text-slate-300 mt-4 mb-1.5">{children}</h4>,
+              h5: ({ children }) => <h5 className="text-sm font-medium text-slate-400 mt-3 mb-1">{children}</h5>,
+              h6: ({ children }) => <h6 className="text-xs font-medium text-slate-400 mt-3 mb-1">{children}</h6>,
               p: ({ children }) => <p className="text-slate-200 leading-relaxed mb-4 text-sm">{children}</p>,
               a: ({ href, children }) => (
                 <a href={href} target="_blank" rel="noopener noreferrer"
