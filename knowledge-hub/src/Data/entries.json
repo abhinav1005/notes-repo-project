@@ -1,5 +1,24 @@
 [
   {
+    "entryId": "routing",
+    "type": "note",
+    "title": "Routing",
+    "tags": [
+      "routing",
+      "http-methods",
+      "web-apis",
+      "rest-api",
+      "dynamic-routes",
+      "api-design"
+    ],
+    "summary": "Routing maps URLs to server-side logic, working with HTTP methods to handle requests. Key concepts include static/dynamic routes, path/query parameters, nested routes, API versioning for managing breaking changes, and catch-all routes for error handling.",
+    "content": "HTTP Methods describe the intent and express the what of the request\n\n- whether do u want to fetch/delete and so on\n\nRouting describes:\n\n- where you want to perform this operation\n- Which resource do you want to perform something\n\nRouting is basically mapping URL parameters to a server-side logic\n\nThe method and the route are like a key which map to a particular handler in the server.\n\n- GET /api/books and POST /api/books are two different routes, even though we have /api/books in common\n\nStatic Routes:\n\n- do not have any variable parameters in the route\n- like /api/books\n\nDynamic Routes:\n\n- has data being passed to the server to get a specific response\n- The ID part being passed is called a route parameter or path parameter\n- It is a part of the route itself\n- like /api/users/123\n    - where 123 is the id of the user\n    - r.get(\u201d/api/users/:id\u201d)\n\n- We also have query parameters\n- like GET /api/search?query=some+value\n- In post requests or put request we use the body of the request to send some data. But in GET requests, we don\u2019t have a body in REST APIs. So if we want to send some data to the server, we can use query parameters.\n- We can send a set of key-value pairs in a request to send some metadata\n- Path parameters serve as a semantic expression.\n\nNested Routes:\n\n- /api/users/123/posts/456\n- fetch post with id 456 for the user with id 123\n- fetching different information at different levels\n\nRoute Versioning and Deprecation\n\n- GET /api/v1/products or GET /api/v2/products\n- Why do we need versioning:\n    - If we have some new requirements for which we need to modify the response format, instead of changing the entire route, we can add a new version, where in v2 you can adhere to the new requirements while retaining the original response as well\n    - Later, you can eventually deprecate v1 so that devs have a window to migrate from v1 to v2.\n    - Allows a stable and complete workflow to add breaking changes to endpoints using versioning.\n\nCatch-all route\n\n- If we request to GET /api/v3/products while the server does not serve this endpoint, we can use catch-all handling to send a user-friendly message saying things like \u201cRoute not found.\u201d\n- we define this route as /*, which basically means anything other than the endpoints we have should be routed to this endpoint.\n- This is like defining a default in switch cases",
+    "sourceUrl": "",
+    "sourceFile": "notes/routing.md",
+    "createdAt": "2026-03-06T03:38:23.029489+00:00",
+    "updatedAt": "2026-03-06T03:38:23.029489+00:00"
+  },
+  {
     "entryId": "http-caching-content-negotiation",
     "type": "note",
     "title": "HTTP Caching & Content Negotiation",
